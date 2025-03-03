@@ -1,4 +1,4 @@
-function create_bookmarks_post_type() {
+<?php function create_bookmarks_post_type() {
     register_post_type('bookmarks',
         array(
             'labels' => array(

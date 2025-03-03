@@ -6,18 +6,32 @@ if (is_user_logged_in()) {
         $tags = sanitize_text_field($_POST['bookmark_tags']);
         $categories = sanitize_text_field($_POST['bookmark_categories']);
 
-        $post_id = wp_insert_post(array(
-            'post_title' => $title,
+        // Check if the URL already exists
+        $existing_bookmark = get_posts(array(
             'post_type' => 'bookmarks',
-            'post_status' => 'publish',
-            'post_author' => get_current_user_id(),
+            'meta_key' => 'bookmark_url',
+            'meta_value' => $url,
+            'author' => get_current_user_id(), // Ensure it's the same user
         ));
 
-        if ($post_id) {
-            update_post_meta($post_id, 'bookmark_url', $url);
-            wp_set_post_tags($post_id, $tags);
-            wp_set_post_categories($post_id, array($categories));
-            echo '<p>Bookmark added successfully!</p>';
+        if (empty($existing_bookmark)) {
+            // URL does not exist, proceed to add the bookmark
+            $post_id = wp_insert_post(array(
+                'post_title' => $title,
+                'post_type' => 'bookmarks',
+                'post_status' => 'publish',
+                'post_author' => get_current_user_id(),
+            ));
+
+            if ($post_id) {
+                update_post_meta($post_id, 'bookmark_url', $url);
+                wp_set_post_tags($post_id, $tags);
+                wp_set_post_categories($post_id, array($categories));
+                echo '<p>Bookmark added successfully!</p>';
+            }
+        } else {
+            // URL already exists
+            echo '<p>This URL has already been bookmarked.</p>';
         }
     }
     ?>
