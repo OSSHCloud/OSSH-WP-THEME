@@ -1,195 +1,123 @@
-<?php function create_bookmarks_post_type() {
-    register_post_type('bookmarks',
-        array(
-            'labels' => array(
-                'name' => __('Bookmarks'),
-                'singular_name' => __('Bookmark'),
-                'add_new_item' => __('Add New Bookmark'),
-                'edit_item' => __('Edit Bookmark'),
-                'view_item' => __('View Bookmark'),
-            ),
-            'public' => true,
-            'has_archive' => true,
-            'supports' => array('title', 'author', 'custom-fields'),
-            'capability_type' => 'post',
-            'show_in_rest' => true, // Enable Gutenberg editor if needed
-        )
-    );
-}
-add_action('init', 'create_bookmarks_post_type');
+<?php
+/**
+ * GeneratePress.
+ *
+ * Please do not make any edits to this file. All edits should be done in a child theme.
+ *
+ * @package GeneratePress
+ */
 
-function add_bookmark_meta_boxes() {
-    add_meta_box(
-        'bookmark_url',
-        __('Bookmark URL'),
-        'render_bookmark_url_meta_box',
-        'bookmarks',
-        'normal',
-        'default'
-    );
-}
-add_action('add_meta_boxes', 'add_bookmark_meta_boxes');
-
-function render_bookmark_url_meta_box($post) {
-    $url = get_post_meta($post->ID, 'bookmark_url', true);
-    ?>
-    <label for="bookmark_url">URL:</label>
-    <input type="text" id="bookmark_url" name="bookmark_url" value="<?php echo esc_url($url); ?>" style="width: 100%;">
-    <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
 }
 
-function save_bookmark_meta($post_id) {
-    if (array_key_exists('bookmark_url', $_POST)) {
-        update_post_meta(
-            $post_id,
-            'bookmark_url',
-            esc_url_raw($_POST['bookmark_url'])
-        );
-    }
-}
-add_action('save_post', 'save_bookmark_meta');
+// Set our theme version.
+define( 'GENERATE_VERSION', '3.5.1' );
 
-function create_tasks_post_type() {
-  register_post_type('tasks',
-      array(
-          'labels' => array(
-              'name' => __('Tasks'),
-              'singular_name' => __('Task'),
-              'add_new_item' => __('Add New Task'),
-              'edit_item' => __('Edit Task'),
-              'view_item' => __('View Task'),
-          ),
-          'public' => true,
-          'has_archive' => true,
-          'supports' => array('title', 'author', 'editor', 'custom-fields'),
-          'show_in_rest' => true, // Enable Gutenberg editor if needed
-      )
-  );
-}
-add_action('init', 'create_tasks_post_type');
+if ( ! function_exists( 'generate_setup' ) ) {
+	add_action( 'after_setup_theme', 'generate_setup' );
+	/**
+	 * Sets up theme defaults and registers support for various WordPress features.
+	 *
+	 * @since 0.1
+	 */
+	function generate_setup() {
+		// Make theme available for translation.
+		load_theme_textdomain( 'generatepress' );
 
-function add_task_meta_boxes() {
-  add_meta_box(
-      'task_details',
-      __('Task Details'),
-      'render_task_details_meta_box',
-      'tasks',
-      'normal',
-      'default'
-  );
-}
-add_action('add_meta_boxes', 'add_task_meta_boxes');
+		// Add theme support for various features.
+		add_theme_support( 'automatic-feed-links' );
+		add_theme_support( 'post-thumbnails' );
+		add_theme_support( 'post-formats', array( 'aside', 'image', 'video', 'quote', 'link', 'status' ) );
+		add_theme_support( 'woocommerce' );
+		add_theme_support( 'title-tag' );
+		add_theme_support( 'html5', array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'script', 'style' ) );
+		add_theme_support( 'customize-selective-refresh-widgets' );
+		add_theme_support( 'align-wide' );
+		add_theme_support( 'responsive-embeds' );
 
-function render_task_details_meta_box($post) {
-  $website_url = get_post_meta($post->ID, 'website_url', true);
-  $website_name = get_post_meta($post->ID, 'website_name', true);
-  $description = get_post_meta($post->ID, 'description', true);
-  ?>
-  <label for="website_url">Website URL:</label>
-  <input type="url" id="website_url" name="website_url" value="<?php echo esc_url($website_url); ?>" style="width: 100%;"><br>
+		$color_palette = generate_get_editor_color_palette();
 
-  <label for="website_name">Website Name:</label>
-  <input type="text" id="website_name" name="website_name" value="<?php echo esc_attr($website_name); ?>" style="width: 100%;"><br>
+		if ( ! empty( $color_palette ) ) {
+			add_theme_support( 'editor-color-palette', $color_palette );
+		}
 
-  <label for="description">Description:</label>
-  <textarea id="description" name="description" style="width: 100%;"><?php echo esc_textarea($description); ?></textarea>
-  <?php
-}
+		add_theme_support(
+			'custom-logo',
+			array(
+				'height' => 70,
+				'width' => 350,
+				'flex-height' => true,
+				'flex-width' => true,
+			)
+		);
 
-function save_task_meta($post_id) {
-  if (array_key_exists('website_url', $_POST)) {
-      update_post_meta(
-          $post_id,
-          'website_url',
-          esc_url_raw($_POST['website_url'])
-      );
-  }
-  if (array_key_exists('website_name', $_POST)) {
-      update_post_meta(
-          $post_id,
-          'website_name',
-          sanitize_text_field($_POST['website_name'])
-      );
-  }
-  if (array_key_exists('description', $_POST)) {
-      update_post_meta(
-          $post_id,
-          'description',
-          sanitize_textarea_field($_POST['description'])
-      );
-  }
-}
-add_action('save_post', 'save_task_meta');
+		// Register primary menu.
+		register_nav_menus(
+			array(
+				'primary' => __( 'Primary Menu', 'generatepress' ),
+			)
+		);
 
-function create_subtasks_taxonomy() {
-  register_taxonomy(
-      'subtasks',
-      'tasks',
-      array(
-          'labels' => array(
-              'name' => __('Subtasks'),
-              'singular_name' => __('Subtask'),
-          ),
-          'hierarchical' => true, // Allows parent-child relationships
-          'show_in_rest' => true, // Enable in Gutenberg
-      )
-  );
-}
-add_action('init', 'create_subtasks_taxonomy');
+		/**
+		 * Set the content width to something large
+		 * We set a more accurate width in generate_smart_content_width()
+		 */
+		global $content_width;
+		if ( ! isset( $content_width ) ) {
+			$content_width = 1200; /* pixels */
+		}
 
-function add_subtasks_meta_boxes() {
-  add_meta_box(
-      'subtasks_solutions',
-      __('Subtasks & Solutions'),
-      'render_subtasks_solutions_meta_box',
-      'tasks',
-      'normal',
-      'default'
-  );
-}
-add_action('add_meta_boxes', 'add_subtasks_meta_boxes');
+		// Add editor styles to the block editor.
+		add_theme_support( 'editor-styles' );
 
-function render_subtasks_solutions_meta_box($post) {
-  $subtasks = get_post_meta($post->ID, 'subtasks', true);
-  ?>
-  <div id="subtasks-container">
-      <?php if (is_array($subtasks)) : ?>
-          <?php foreach ($subtasks as $index => $subtask) : ?>
-              <div class="subtask">
-                  <label for="subtask_<?php echo $index; ?>">Subtask:</label>
-                  <input type="text" name="subtasks[<?php echo $index; ?>][name]" value="<?php echo esc_attr($subtask['name']); ?>"><br>
+		$editor_styles = apply_filters(
+			'generate_editor_styles',
+			array(
+				'assets/css/admin/block-editor.css',
+			)
+		);
 
-                  <div class="solutions">
-                      <?php if (is_array($subtask['solutions'])) : ?>
-                          <?php foreach ($subtask['solutions'] as $solution_index => $solution) : ?>
-                              <div class="solution">
-                                  <label for="file_path_<?php echo $index; ?>_<?php echo $solution_index; ?>">File Path:</label>
-                                  <input type="text" name="subtasks[<?php echo $index; ?>][solutions][<?php echo $solution_index; ?>][file_path]" value="<?php echo esc_attr($solution['file_path']); ?>"><br>
-
-                                  <label for="code_snippet_<?php echo $index; ?>_<?php echo $solution_index; ?>">Code Snippet:</label>
-                                  <textarea name="subtasks[<?php echo $index; ?>][solutions][<?php echo $solution_index; ?>][code_snippet]"><?php echo esc_textarea($solution['code_snippet']); ?></textarea><br>
-                              </div>
-                          <?php endforeach; ?>
-                      <?php endif; ?>
-                  </div>
-              </div>
-          <?php endforeach; ?>
-      <?php endif; ?>
-  </div>
-  <button type="button" id="add-subtask">Add Subtask</button>
-  <script>
-      // JavaScript to dynamically add subtasks and solutions
-  </script>
-  <?php
+		add_editor_style( $editor_styles );
+	}
 }
 
-function save_subtasks_solutions_meta($post_id) {
-  if (array_key_exists('subtasks', $_POST)) {
-      update_post_meta(
-          $post_id,
-          'subtasks',
-          $_POST['subtasks']
-      );
-  }
+/**
+ * Get all necessary theme files
+ */
+$theme_dir = get_template_directory();
+
+require $theme_dir . '/inc/theme-functions.php';
+require $theme_dir . '/inc/defaults.php';
+require $theme_dir . '/inc/class-css.php';
+require $theme_dir . '/inc/css-output.php';
+require $theme_dir . '/inc/general.php';
+require $theme_dir . '/inc/customizer.php';
+require $theme_dir . '/inc/markup.php';
+require $theme_dir . '/inc/typography.php';
+require $theme_dir . '/inc/plugin-compat.php';
+require $theme_dir . '/inc/block-editor.php';
+require $theme_dir . '/inc/class-typography.php';
+require $theme_dir . '/inc/class-typography-migration.php';
+require $theme_dir . '/inc/class-html-attributes.php';
+require $theme_dir . '/inc/class-theme-update.php';
+require $theme_dir . '/inc/class-rest.php';
+require $theme_dir . '/inc/deprecated.php';
+
+if ( is_admin() ) {
+	require $theme_dir . '/inc/meta-box.php';
+	require $theme_dir . '/inc/class-dashboard.php';
 }
-add_action('save_post', 'save_subtasks_solutions_meta');
+
+/**
+ * Load our theme structure
+ */
+require $theme_dir . '/inc/structure/archives.php';
+require $theme_dir . '/inc/structure/comments.php';
+require $theme_dir . '/inc/structure/featured-images.php';
+require $theme_dir . '/inc/structure/footer.php';
+require $theme_dir . '/inc/structure/header.php';
+require $theme_dir . '/inc/structure/navigation.php';
+require $theme_dir . '/inc/structure/post-meta.php';
+require $theme_dir . '/inc/structure/sidebars.php';
+require $theme_dir . '/inc/structure/search-modal.php';
