@@ -121,3 +121,19 @@ require $theme_dir . '/inc/structure/navigation.php';
 require $theme_dir . '/inc/structure/post-meta.php';
 require $theme_dir . '/inc/structure/sidebars.php';
 require $theme_dir . '/inc/structure/search-modal.php';
+
+
+// custom code starts from here
+// home page template
+function ossh_home_page_template_shortcode($atts) {
+	ob_start(); ?>
+
+	<div class="ossh_home_page_template">
+			<h2>Welcome to My Custom Template</h2>
+			<p>This is a reusable template that you can include in any page using a shortcode.</p>
+	</div>
+
+	<?php 
+	return ob_get_clean();
+}
+add_shortcode('ossh_home_page_template', 'ossh_home_page_template_shortcode');
